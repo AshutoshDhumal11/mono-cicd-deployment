@@ -141,5 +141,5 @@ app.get("/todos", async (req: Request, res: Response) => {
 });
 
 app.listen(8080, () => {
-  console.log("App is listening on http://localhost:8080");
+  console.log("App is running on http://localhost:8080");
 });
