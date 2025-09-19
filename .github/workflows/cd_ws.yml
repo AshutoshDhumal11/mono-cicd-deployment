@@ -20,5 +20,5 @@ jobs:
         with:
           context: .
           file: ./docker/Dockerfile.ws
-          push: true,
+          push: true
           tags: ashutoshdhumal/mono-cicd-deployment-ws:${{ github.sha}}
