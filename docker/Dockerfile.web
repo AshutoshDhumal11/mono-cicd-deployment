@@ -4,8 +4,6 @@ WORKDIR /usr/src/app
 
 ARG DATABASE_URL
 
-ENV DATABASE_URL=$DATABASE_URL
-
 COPY ./packages ./packages
 
 COPY ./package.json ./package.json
@@ -22,7 +20,7 @@ RUN bun install
 
 RUN bun run db:generate
 
-RUN bun run build
+RUN DATBASE_URL=$DATABASE_URL bun run build
 
 EXPOSE 3000
 
