@@ -1,29 +1,45 @@
-FROM oven/bun:1
+# Stage 1: Build the application
+FROM oven/bun:1 AS builder
 
+# Set the working directory
 WORKDIR /usr/src/app
 
+# Copy lock files and package.json first to leverage Docker's caching
+COPY package.json bun.lock ./
+COPY turbo.json ./
+
+# Install dependencies (including dev dependencies)
+RUN bun install --frozen-lockfile
+
+# Copy the rest of the application code
+COPY . .
+
+# Run Prisma migrations and generate the client
+# Use an ARG to pass the DATABASE_URL during the build
 ARG DATABASE_URL
-
-COPY ./packages ./packages
-
-COPY ./package.json ./package.json
-
-COPY ./package-lock.json ./package-lock.json
-
-COPY ./bun.lock ./bun.lock
-
-COPY ./turbo.json ./turbo.json
-
-COPY ./apps/web ./apps/web
-
-ENV DATABASE_URL=$DATABASE_URL
-
-RUN bun install
-
 RUN DATABASE_URL=$DATABASE_URL bun run db:generate
 
+# Build the application
 RUN DATABASE_URL=$DATABASE_URL bun run build
 
+# Stage 2: Create a lightweight runtime image
+FROM oven/bun:1
+
+# Set the working directory
+WORKDIR /usr/src/app
+
+# Copy only the necessary files from the builder stage
+COPY --from=builder /usr/src/app/package.json ./package.json
+COPY --from=builder /usr/src/app/apps/web/ ./apps/web/
+COPY --from=builder /usr/src/app/node_modules/ ./node_modules/
+COPY --from=builder /usr/src/app/dist/ ./dist/
+
+# Set the environment variable for the runtime
+ARG DATABASE_URL
+ENV DATABASE_URL=$DATABASE_URL
+
+# Expose the application port
 EXPOSE 3000
 
+# Start the application
 CMD [ "bun", "run", "start:web" ]
