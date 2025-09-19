@@ -20,7 +20,6 @@ jobs:
         with:
           context: .
           file: ./docker/Dockerfile.web
-          build-args:
-            - DATABASE_URL=${{ secrets.DATABASE_URL }}
+          build-args: ${{ secrets.DATABASE_URL }}
           push: true
           tags: ashutoshdhumal/mono-cicd-deployment-web:${{ github.sha }}
